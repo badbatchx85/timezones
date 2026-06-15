@@ -31,6 +31,11 @@ it("dayPart classifica por faixa de hora local", () => {
   assertEqual(dayPart("Europe/London", ref), "outro");
 });
 
+it("getOffsetLabel colapsa offset zero para GMT", () => {
+  assertEqual(getOffsetLabel("UTC", ref), "GMT");
+  assertEqual(getOffsetLabel("Europe/London", new Date("2026-01-15T12:00:00Z")), "GMT");
+});
+
 it("listAllZones devolve muitos fusos IANA incluindo Sao_Paulo", () => {
   const zones = listAllZones();
   assert(zones.length > 100, "deve haver centenas de fusos");
