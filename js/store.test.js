@@ -1,1 +1,39 @@
-// testes a seguir
+import { it, assertEqual, assert } from "./test-harness.js";
+import { createStore } from "./store.js";
+
+function fakeStorage() {
+  const m = new Map();
+  return {
+    getItem: k => (m.has(k) ? m.get(k) : null),
+    setItem: (k, v) => m.set(k, String(v)),
+    removeItem: k => m.delete(k),
+  };
+}
+
+it("addCity/getCities persiste e não duplica", () => {
+  const s = createStore(fakeStorage());
+  s.addCity("America/Sao_Paulo");
+  s.addCity("Asia/Tokyo");
+  s.addCity("America/Sao_Paulo"); // duplicada, ignora
+  assertEqual(s.getCities().length, 2);
+  assertEqual(s.getCities()[0], "America/Sao_Paulo");
+});
+
+it("removeCity remove", () => {
+  const s = createStore(fakeStorage());
+  s.addCity("Europe/London");
+  s.removeCity("Europe/London");
+  assertEqual(s.getCities().length, 0);
+});
+
+it("setReference/getReference persiste", () => {
+  const s = createStore(fakeStorage());
+  s.setReference("Asia/Tokyo");
+  assertEqual(s.getReference(), "Asia/Tokyo");
+});
+
+it("getReference cai no fuso local quando não definido", () => {
+  const s = createStore(fakeStorage());
+  assertEqual(typeof s.getReference(), "string");
+  assert(s.getReference().length > 0, "referência padrão não vazia");
+});
