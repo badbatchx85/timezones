@@ -1,6 +1,7 @@
 import { it, assert, assertEqual } from "./test-harness.js";
 import { formatTime, getOffsetLabel, getCityLabel, formatDateShort, dayPart, listAllZones } from "./tz.js";
 import { dateForReferenceMinute } from "./tz.js";
+import { minuteToHHMM, hhmmToMinute } from "./tz.js";
 
 // 2026-06-15T18:00:00Z → São Paulo (GMT-3) = 15:00; Tóquio (GMT+9) = sex 03:00
 const ref = new Date("2026-06-15T18:00:00Z");
@@ -49,4 +50,19 @@ it("dateForReferenceMinute monta a hora escolhida no fuso de referência", () =>
   const base = new Date("2026-06-15T10:00:00Z");
   const d = dateForReferenceMinute("America/Sao_Paulo", base, 900);
   assertEqual(d.toISOString(), "2026-06-15T18:00:00.000Z");
+});
+
+it("minuteToHHMM formata minutos do dia como HH:MM", () => {
+  assertEqual(minuteToHHMM(0), "00:00");
+  assertEqual(minuteToHHMM(90), "01:30");
+  assertEqual(minuteToHHMM(870), "14:30");
+  assertEqual(minuteToHHMM(1439), "23:59");
+});
+
+it("hhmmToMinute converte HH:MM em minutos (null se inválido)", () => {
+  assertEqual(hhmmToMinute("00:00"), 0);
+  assertEqual(hhmmToMinute("14:30"), 870);
+  assertEqual(hhmmToMinute("23:59"), 1439);
+  assertEqual(hhmmToMinute("xx"), null);
+  assertEqual(hhmmToMinute(""), null);
 });

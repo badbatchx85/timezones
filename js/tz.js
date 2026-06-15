@@ -36,6 +36,18 @@ export function dayPart(timeZone, date) {
   return "outro";
 }
 
+export function minuteToHHMM(m) {
+  const h = String(Math.floor(m / 60)).padStart(2, "0");
+  const mm = String(m % 60).padStart(2, "0");
+  return `${h}:${mm}`;
+}
+
+export function hhmmToMinute(s) {
+  const [h, m] = String(s).split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h * 60 + m;
+}
+
 export function listAllZones() {
   if (typeof Intl.supportedValuesOf === "function") {
     return Intl.supportedValuesOf("timeZone");

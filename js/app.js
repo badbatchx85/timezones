@@ -1,6 +1,6 @@
 import { createStore } from "./store.js";
 import { startClock } from "./clock.js";
-import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel } from "./tz.js";
+import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute } from "./tz.js";
 import { renderGrid, renderSearch } from "./ui.js";
 
 const store = createStore();
@@ -10,10 +10,22 @@ const search = document.getElementById("search");
 const results = document.getElementById("results");
 const allZones = listAllZones();
 const slider = document.getElementById("slider");
+const timeInput = document.getElementById("timeInput");
 const resetBtn = document.getElementById("reset");
 const refLabel = document.getElementById("ref-label");
 
-let comparing = false; // false = modo ao vivo; true = usando o slider
+let comparing = false; // false = modo ao vivo; true = comparando um horário escolhido
+let comparingMinute = 0; // fonte única de verdade do minuto comparado (0..1439)
+
+// Entra/atualiza o modo de comparação para um minuto do dia e sincroniza ambos
+// os controles (slider e campo de hora) antes de redesenhar.
+function startComparing(minute) {
+  comparing = true;
+  comparingMinute = minute;
+  slider.value = String(minute);
+  timeInput.value = minuteToHHMM(minute);
+  draw();
+}
 
 // Sugestões na primeira visita.
 if (store.getCities().length === 0) {
@@ -25,7 +37,7 @@ let currentDate = new Date();
 function draw() {
   const refTz = store.getReference();
   const displayDate = comparing
-    ? dateForReferenceMinute(refTz, currentDate, Number(slider.value))
+    ? dateForReferenceMinute(refTz, currentDate, comparingMinute)
     : currentDate;
 
   refLabel.textContent = `Referência: ${getCityLabel(refTz)} · ${formatTime(refTz, displayDate)}`;
@@ -54,7 +66,11 @@ search.addEventListener("input", () => {
   });
 });
 
-slider.addEventListener("input", () => { comparing = true; draw(); });
+slider.addEventListener("input", () => startComparing(Number(slider.value)));
+timeInput.addEventListener("input", () => {
+  const min = hhmmToMinute(timeInput.value);
+  if (min != null) startComparing(min);
+});
 resetBtn.addEventListener("click", () => { comparing = false; draw(); });
 
 startClock(date => {
