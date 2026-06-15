@@ -13,6 +13,12 @@ const slider = document.getElementById("slider");
 const timeInput = document.getElementById("timeInput");
 const resetBtn = document.getElementById("reset");
 const refLabel = document.getElementById("ref-label");
+const colorToggle = document.getElementById("colorToggle");
+colorToggle.checked = store.getSettings().colorHint;
+colorToggle.addEventListener("change", () => {
+  store.setSettings({ colorHint: colorToggle.checked });
+  draw();
+});
 
 let comparing = false; // false = modo ao vivo; true = comparando um horário escolhido
 let comparingMinute = 0; // fonte única de verdade do minuto comparado (0..1439)
