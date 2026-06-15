@@ -1,5 +1,6 @@
 import { it, assert, assertEqual } from "./test-harness.js";
 import { formatTime, getOffsetLabel, getCityLabel, formatDateShort, dayPart, listAllZones } from "./tz.js";
+import { dateForReferenceMinute } from "./tz.js";
 
 // 2026-06-15T18:00:00Z → São Paulo (GMT-3) = 15:00; Tóquio (GMT+9) = sex 03:00
 const ref = new Date("2026-06-15T18:00:00Z");
@@ -40,4 +41,12 @@ it("listAllZones devolve muitos fusos IANA incluindo Sao_Paulo", () => {
   const zones = listAllZones();
   assert(zones.length > 100, "deve haver centenas de fusos");
   assert(zones.includes("America/Sao_Paulo"), "inclui Sao_Paulo");
+});
+
+it("dateForReferenceMinute monta a hora escolhida no fuso de referência", () => {
+  // base: qualquer instante de 2026-06-15; escolher 15:00 (=900 min) em São Paulo (GMT-3)
+  // 15:00 em GMT-3 == 18:00Z
+  const base = new Date("2026-06-15T10:00:00Z");
+  const d = dateForReferenceMinute("America/Sao_Paulo", base, 900);
+  assertEqual(d.toISOString(), "2026-06-15T18:00:00.000Z");
 });
