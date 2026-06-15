@@ -44,6 +44,13 @@ export function createStore(storage = window.localStorage) {
     setReference(tz) {
       writeJSON(REF_KEY, tz);
     },
+    clearReference() {
+      try {
+        storage.removeItem(REF_KEY);
+      } catch {
+        /* modo privado: ignora, app segue na sessão */
+      }
+    },
     getSettings() {
       return readJSON(SETTINGS_KEY, { colorHint: true });
     },

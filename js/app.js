@@ -1,9 +1,11 @@
 import { createStore } from "./store.js";
 import { startClock } from "./clock.js";
-import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute } from "./tz.js";
+import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute, isValidZone } from "./tz.js";
 import { renderGrid, renderSearch } from "./ui.js";
 
 const store = createStore();
+// Autocorreção: remove fusos inválidos persistidos antes do primeiro desenho.
+store.getCities().forEach(tz => { if (!isValidZone(tz)) store.removeCity(tz); });
 const grid = document.getElementById("grid");
 const emptyEl = document.getElementById("empty");
 const search = document.getElementById("search");
@@ -55,7 +57,11 @@ function draw() {
     referenceTz: refTz,
     colorHint: store.getSettings().colorHint,
     handlers: {
-      onRemove: tz => { store.removeCity(tz); draw(); },
+      onRemove: tz => {
+        store.removeCity(tz);
+        if (store.getReference() === tz) store.clearReference();
+        draw();
+      },
       onSetReference: tz => { store.setReference(tz); draw(); },
     },
   });

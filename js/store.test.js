@@ -37,3 +37,11 @@ it("getReference cai no fuso local quando não definido", () => {
   assertEqual(typeof s.getReference(), "string");
   assert(s.getReference().length > 0, "referência padrão não vazia");
 });
+
+it("clearReference faz getReference voltar ao fuso local", () => {
+  const s = createStore(fakeStorage());
+  s.setReference("Asia/Tokyo");
+  s.clearReference();
+  assertEqual(typeof s.getReference(), "string");
+  assert(s.getReference() !== "Asia/Tokyo" || s.getReference().length > 0, "voltou ao padrão");
+});

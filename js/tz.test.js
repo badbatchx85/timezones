@@ -2,6 +2,7 @@ import { it, assert, assertEqual } from "./test-harness.js";
 import { formatTime, getOffsetLabel, getCityLabel, formatDateShort, dayPart, listAllZones } from "./tz.js";
 import { dateForReferenceMinute } from "./tz.js";
 import { minuteToHHMM, hhmmToMinute } from "./tz.js";
+import { isValidZone } from "./tz.js";
 
 // 2026-06-15T18:00:00Z → São Paulo (GMT-3) = 15:00; Tóquio (GMT+9) = sex 03:00
 const ref = new Date("2026-06-15T18:00:00Z");
@@ -65,4 +66,11 @@ it("hhmmToMinute converte HH:MM em minutos (null se inválido)", () => {
   assertEqual(hhmmToMinute("23:59"), 1439);
   assertEqual(hhmmToMinute("xx"), null);
   assertEqual(hhmmToMinute(""), null);
+});
+
+it("isValidZone valida fusos IANA", () => {
+  assertEqual(isValidZone("America/Sao_Paulo"), true);
+  assertEqual(isValidZone("Asia/Tokyo"), true);
+  assertEqual(isValidZone("Mars/Phobos"), false);
+  assertEqual(isValidZone("not a zone"), false);
 });

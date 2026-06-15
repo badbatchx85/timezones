@@ -15,6 +15,15 @@ export function getCityLabel(timeZone) {
   return timeZone.split("/").pop().replaceAll("_", " ");
 }
 
+export function isValidZone(tz) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function formatDateShort(timeZone, date) {
   return new Intl.DateTimeFormat("pt-BR", {
     timeZone, day: "2-digit", month: "2-digit",
