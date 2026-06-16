@@ -16,6 +16,17 @@ export function getCityLabel(timeZone) {
   return timeZone.split("/").pop().replaceAll("_", " ");
 }
 
+const REGIONS = {
+  America: "América", Europe: "Europa", Asia: "Ásia", Africa: "África",
+  Australia: "Austrália", Pacific: "Pacífico", Atlantic: "Atlântico",
+  Indian: "Índico", Antarctica: "Antártida", Arctic: "Ártico", Etc: "Outros",
+};
+
+export function getRegionLabel(tz) {
+  const area = String(tz).split("/")[0];
+  return REGIONS[area] || area;
+}
+
 export function isValidZone(tz) {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: tz });

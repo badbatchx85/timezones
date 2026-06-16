@@ -78,7 +78,10 @@ function draw() {
 search.addEventListener("input", () => {
   const q = search.value.trim().toLowerCase();
   if (!q) { results.innerHTML = ""; return; }
-  const matches = allZones.filter(z => z.toLowerCase().includes(q)).slice(0, 20);
+  const hour12 = store.getSettings().hour12;
+  const now = new Date();
+  const matches = allZones.filter(z => z.toLowerCase().includes(q)).slice(0, 20)
+    .map(tz => ({ tz, time: formatTime(tz, now, hour12) }));
   renderSearch(results, matches, tz => {
     store.addCity(tz);
     search.value = ""; results.innerHTML = "";

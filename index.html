@@ -12,8 +12,8 @@
     body { font-family: system-ui, sans-serif; margin:0; background:var(--bg); color:#222; }
     header { padding:16px; }
     h1 { font-size:20px; margin:0 0 12px; }
-    #search { width:100%; padding:10px 12px; border:1px solid var(--line);
-              border-radius:8px; font-size:14px; }
+    #search { width:100%; padding:13px 14px; border:1px solid var(--line);
+              border-radius:8px; font-size:16px; }
     #results { list-style:none; margin:6px 0 0; padding:0; max-height:220px; overflow:auto; }
     #results li { padding:8px 12px; background:var(--card); border:1px solid var(--line);
                   border-top:none; cursor:pointer; }
@@ -27,11 +27,17 @@
     .card .name { font-weight:600; font-size:14px; }
     .card .time { font-size:24px; font-weight:700; margin:4px 0; letter-spacing:-1px; }
     .card .meta { color:var(--muted); font-size:11px; }
-    .card .star, .card .ref { position:absolute; top:6px; cursor:pointer; background:none;
-            border:none; font-size:13px; }
-    .card .star { right:6px; }
-    .card .ref { left:6px; opacity:.5; }
-    .card.is-ref .ref { opacity:1; }
+    .card { cursor:pointer; }
+    .card.is-ref { border:2px solid #2a6cc0; box-shadow:0 0 0 1px #2a6cc0; }
+    .card .badge { position:absolute; top:-9px; left:50%; transform:translateX(-50%);
+                   background:#2a6cc0; color:#fff; font-size:10px; padding:1px 8px;
+                   border-radius:8px; letter-spacing:.5px; }
+    .card .remove { position:absolute; top:6px; right:8px; background:none; border:none;
+                    color:#bbb; cursor:pointer; font-size:12px; line-height:1; padding:2px; }
+    .card .remove:hover { color:#c0392b; }
+    #results li { display:flex; justify-content:space-between; align-items:center; }
+    .r-region { color:#aaa; font-size:12px; font-weight:400; margin-left:8px; }
+    .r-time { color:#888; font-size:13px; white-space:nowrap; }
     #comparator { background:var(--card); border:1px solid var(--line); border-radius:10px;
                   padding:12px; margin-bottom:12px; }
     #comparator .row { display:flex; justify-content:space-between; font-size:12px;
@@ -48,7 +54,7 @@
 <body>
   <header>
     <h1>🌍 Relógios Mundiais</h1>
-    <input id="search" type="search" placeholder="🔍 Buscar cidade…" autocomplete="off">
+    <input id="search" type="search" placeholder="＋ Adicionar cidade…" autocomplete="off">
     <ul id="results"></ul>
   </header>
   <main>
