@@ -3,6 +3,8 @@ import { formatTime, getOffsetLabel, getCityLabel, formatDateShort, dayPart, lis
 import { dateForReferenceMinute } from "./tz.js";
 import { minuteToHHMM, hhmmToMinute } from "./tz.js";
 import { isValidZone } from "./tz.js";
+import { getRegionLabel } from "./tz.js";
+import { getLocalZone } from "./tz.js";
 
 // 2026-06-15T18:00:00Z → São Paulo (GMT-3) = 15:00; Tóquio (GMT+9) = sex 03:00
 const ref = new Date("2026-06-15T18:00:00Z");
@@ -79,4 +81,18 @@ it("isValidZone valida fusos IANA", () => {
   assertEqual(isValidZone("Asia/Tokyo"), true);
   assertEqual(isValidZone("Mars/Phobos"), false);
   assertEqual(isValidZone("not a zone"), false);
+});
+
+it("getRegionLabel mapeia a área IANA para região em PT", () => {
+  assertEqual(getRegionLabel("America/Sao_Paulo"), "América");
+  assertEqual(getRegionLabel("Europe/London"), "Europa");
+  assertEqual(getRegionLabel("Asia/Tokyo"), "Ásia");
+  assertEqual(getRegionLabel("Australia/Sydney"), "Austrália");
+  assertEqual(getRegionLabel("UTC"), "UTC");
+});
+
+it("getLocalZone devolve uma string de fuso não-vazia", () => {
+  const z = getLocalZone();
+  assertEqual(typeof z, "string");
+  assert(z.length > 0, "fuso local não-vazio");
 });

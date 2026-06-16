@@ -1,6 +1,6 @@
 import { createStore } from "./store.js";
 import { startClock } from "./clock.js";
-import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute, isValidZone } from "./tz.js";
+import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute, isValidZone, getLocalZone } from "./tz.js";
 import { renderGrid, renderSearch } from "./ui.js";
 
 const store = createStore();
@@ -43,7 +43,8 @@ function startComparing(minute) {
 
 // Sugestões na primeira visita.
 if (store.getCities().length === 0) {
-  ["America/Sao_Paulo", "America/New_York", "Europe/London", "Asia/Tokyo"].forEach(tz => store.addCity(tz));
+  [getLocalZone(), "America/Sao_Paulo", "America/New_York", "Europe/London", "Asia/Tokyo"]
+    .forEach(tz => store.addCity(tz));
 }
 
 let currentDate = new Date();
@@ -78,7 +79,10 @@ function draw() {
 search.addEventListener("input", () => {
   const q = search.value.trim().toLowerCase();
   if (!q) { results.innerHTML = ""; return; }
-  const matches = allZones.filter(z => z.toLowerCase().includes(q)).slice(0, 20);
+  const hour12 = store.getSettings().hour12;
+  const now = new Date();
+  const matches = allZones.filter(z => z.toLowerCase().includes(q)).slice(0, 20)
+    .map(tz => ({ tz, time: formatTime(tz, now, hour12) }));
   renderSearch(results, matches, tz => {
     store.addCity(tz);
     search.value = ""; results.innerHTML = "";
