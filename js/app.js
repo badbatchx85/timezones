@@ -21,6 +21,12 @@ colorToggle.addEventListener("change", () => {
   store.setSettings({ colorHint: colorToggle.checked });
   draw();
 });
+const fmtToggle = document.getElementById("fmtToggle");
+fmtToggle.checked = store.getSettings().hour12;
+fmtToggle.addEventListener("change", () => {
+  store.setSettings({ hour12: fmtToggle.checked });
+  draw();
+});
 
 let comparing = false; // false = modo ao vivo; true = comparando um horário escolhido
 let comparingMinute = 0; // fonte única de verdade do minuto comparado (0..1439)
@@ -48,7 +54,8 @@ function draw() {
     ? dateForReferenceMinute(refTz, currentDate, comparingMinute)
     : currentDate;
 
-  refLabel.textContent = `Referência: ${getCityLabel(refTz)} · ${formatTime(refTz, displayDate)}`;
+  const hour12 = store.getSettings().hour12;
+  refLabel.textContent = `Referência: ${getCityLabel(refTz)} · ${formatTime(refTz, displayDate, hour12)}`;
 
   renderGrid({
     grid, emptyEl,
@@ -56,6 +63,7 @@ function draw() {
     displayDate,
     referenceTz: refTz,
     colorHint: store.getSettings().colorHint,
+    hour12,
     handlers: {
       onRemove: tz => {
         store.removeCity(tz);

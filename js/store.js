@@ -52,7 +52,7 @@ export function createStore(storage = window.localStorage) {
       }
     },
     getSettings() {
-      return readJSON(SETTINGS_KEY, { colorHint: true });
+      return readJSON(SETTINGS_KEY, { colorHint: true, hour12: false });
     },
     setSettings(obj) {
       writeJSON(SETTINGS_KEY, { ...this.getSettings(), ...obj });

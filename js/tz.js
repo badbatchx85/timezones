@@ -1,6 +1,7 @@
-export function formatTime(timeZone, date) {
-  return new Intl.DateTimeFormat("pt-BR", {
-    timeZone, hour: "2-digit", minute: "2-digit", hour12: false,
+export function formatTime(timeZone, date, hour12 = false) {
+  const locale = hour12 ? "en-US" : "pt-BR"; // en-US garante token AM/PM limpo no modo 12h
+  return new Intl.DateTimeFormat(locale, {
+    timeZone, hour: "2-digit", minute: "2-digit", hour12,
   }).format(date);
 }
 
