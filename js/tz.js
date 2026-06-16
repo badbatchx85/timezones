@@ -54,6 +54,16 @@ function localHour(timeZone, date) {
   return parseInt(h, 10) % 24; // "24" → 0
 }
 
+// Minuto do dia (0..1439) que o relógio do fuso marca para `date`.
+export function zoneMinuteOfDay(timeZone, date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone, hour: "2-digit", minute: "2-digit", hour12: false,
+  }).formatToParts(date);
+  const h = parseInt(parts.find(p => p.type === "hour").value, 10) % 24;
+  const m = parseInt(parts.find(p => p.type === "minute").value, 10);
+  return h * 60 + m;
+}
+
 export function dayPart(timeZone, date) {
   const h = localHour(timeZone, date);
   if (h >= 9 && h < 18) return "comercial";   // 09:00–18:00

@@ -1,6 +1,6 @@
 import { createStore } from "./store.js";
 import { startClock } from "./clock.js";
-import { listAllZones, dateForReferenceMinute, formatTime, formatDateShort, getCityLabel, getLocalZone, minuteToHHMM, hhmmToMinute, isValidZone } from "./tz.js";
+import { listAllZones, dateForReferenceMinute, formatTime, formatDateShort, getCityLabel, getLocalZone, minuteToHHMM, hhmmToMinute, isValidZone, zoneMinuteOfDay } from "./tz.js";
 import { renderBoard, updateTimes, wireBoard, renderSearch } from "./ui.js";
 
 const store = createStore();
@@ -129,7 +129,8 @@ timeInput.addEventListener("input", () => {
 resetBtn.addEventListener("click", () => {
   comparing = false;
   timeInput.value = ""; // volta o campo para "--:--"
-  slider.value = "0";   // rebobina o trilho do comparador
+  // posiciona o trilho na hora ATUAL da cidade de referência
+  slider.value = String(zoneMinuteOfDay(store.getReference(), currentDate));
   tick();
 });
 

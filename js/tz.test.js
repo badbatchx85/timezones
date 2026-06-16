@@ -5,9 +5,16 @@ import { minuteToHHMM, hhmmToMinute } from "./tz.js";
 import { isValidZone } from "./tz.js";
 import { getRegionLabel } from "./tz.js";
 import { getLocalZone } from "./tz.js";
+import { zoneMinuteOfDay } from "./tz.js";
 
 // 2026-06-15T18:00:00Z → São Paulo (GMT-3) = 15:00; Tóquio (GMT+9) = sex 03:00
 const ref = new Date("2026-06-15T18:00:00Z");
+
+it("zoneMinuteOfDay devolve o minuto do dia no fuso", () => {
+  assertEqual(zoneMinuteOfDay("America/Sao_Paulo", ref), 900); // 15:00
+  assertEqual(zoneMinuteOfDay("Asia/Tokyo", ref), 180);        // 03:00
+  assertEqual(zoneMinuteOfDay("Europe/London", ref), 1140);    // 19:00 (BST)
+});
 
 it("formatTime devolve HH:MM no fuso pedido", () => {
   assertEqual(formatTime("America/Sao_Paulo", ref), "15:00");
