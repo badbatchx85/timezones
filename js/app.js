@@ -132,8 +132,10 @@ function tick() {
 
 function updateMasthead() {
   const hour12 = store.getSettings().hour12;
-  localTimeEl.textContent = formatTime(localZone, currentDate, hour12);
-  localDateEl.textContent = formatDateShort(localZone, currentDate) + " · " + getCityLabel(localZone);
+  // o relógio do masthead acompanha a cidade de REFERÊNCIA (principal) do grupo ativo
+  const refTz = store.getReference();
+  localTimeEl.textContent = formatTime(refTz, currentDate, hour12);
+  localDateEl.textContent = formatDateShort(refTz, currentDate) + " · " + getCityLabel(refTz);
 }
 
 // Entra/atualiza o modo de comparação (estrutura inalterada → só updateTimes).
