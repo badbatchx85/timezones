@@ -347,6 +347,39 @@
       text-transform:uppercase; padding:34px 18px; text-align:center;
     }
 
+    /* ===== abas de grupo ===== */
+    .group-tabs {
+      display:flex; gap:5px; align-items:center; margin-bottom:12px;
+      overflow-x:auto; padding-bottom:2px;
+    }
+    .tab {
+      position:relative; font-family:"Oswald"; font-size:12px; font-weight:600;
+      letter-spacing:.14em; text-transform:uppercase; color:var(--amber-dim);
+      padding:9px 14px; border:1px solid transparent; border-radius:6px;
+      cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:8px;
+      background:none; transition:color .15s, background .15s, border-color .15s;
+    }
+    .tab:hover { color:var(--cream); }
+    .tab.active { color:var(--amber); border-color:#3a3025; background:rgba(255,179,0,.06); }
+    .tab.active::after {
+      content:""; position:absolute; left:12px; right:12px; bottom:-3px; height:2px;
+      background:var(--amber); box-shadow:var(--glow);
+    }
+    .tab-x { color:var(--amber-dim); font-size:11px; line-height:1; padding:2px; border-radius:3px; }
+    .tab-x:hover { color:#c0392b; }
+    .tab-input {
+      font-family:"Oswald"; font-size:12px; font-weight:600; letter-spacing:.14em;
+      text-transform:uppercase; color:var(--amber); background:#0f0d0b;
+      border:1px solid var(--amber); border-radius:4px; padding:2px 6px; width:9ch;
+      outline:none;
+    }
+    .tab-add {
+      font-family:"Oswald"; color:var(--amber-dim); font-size:15px; line-height:1;
+      padding:7px 11px; border:1px dashed #3a3025; border-radius:6px; cursor:pointer;
+      background:none;
+    }
+    .tab-add:hover { color:var(--amber); border-color:var(--amber-dim); }
+
     @media (max-width:600px) {
       .col-head, .row { grid-template-columns:auto 1fr auto auto; }
       .col-head .ch-fuso, .offset { display:none; }
@@ -410,6 +443,7 @@
         <input id="slider" type="range" min="0" max="1439" step="5" aria-label="Minuto do dia">
       </section>
 
+      <nav class="group-tabs" id="tabs" aria-label="Grupos"></nav>
       <section class="board" aria-label="Quadro de cidades">
         <div class="col-head">
           <span class="ch-handle" aria-hidden="true"></span>
