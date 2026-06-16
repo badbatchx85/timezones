@@ -68,6 +68,7 @@ function rebuild() {
       rebuild();
     },
     onSetReference: tz => { store.setReference(tz); rebuild(); },
+    onReorder: newOrder => { store.setCities(newOrder); rebuild(); },
   });
   tick();
 }
@@ -125,7 +126,12 @@ timeInput.addEventListener("input", () => {
   const min = hhmmToMinute(timeInput.value);
   if (min != null) startComparing(min);
 });
-resetBtn.addEventListener("click", () => { comparing = false; tick(); });
+resetBtn.addEventListener("click", () => {
+  comparing = false;
+  timeInput.value = ""; // volta o campo para "--:--"
+  slider.value = "0";   // rebobina o trilho do comparador
+  tick();
+});
 
 // Build inicial (revelação em cascata + flip de assentamento via CSS).
 rebuild();

@@ -4,6 +4,9 @@ const REDUCED_MOTION = typeof window !== "undefined" && window.matchMedia
   ? window.matchMedia("(prefers-reduced-motion: reduce)")
   : { matches: false };
 
+// A cascata de revelação só roda no primeiro desenho; reordenar/add/remover é instantâneo.
+let firstPaint = true;
+
 // Glyph + row-state class derived from dayPart.
 function partGlyph(part) {
   return part === "madrugada" ? "☾" : "☀";
@@ -54,7 +57,19 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     const row = document.createElement("div");
     row.className = `row ${partRowClass(part)} ${isRef ? "is-ref" : ""}`;
     row.dataset.tz = tz;
-    row.style.animationDelay = `${i * 70}ms`; // staggered cascade reveal
+    if (firstPaint) {
+      row.style.animationDelay = `${i * 70}ms`; // staggered cascade reveal (1ª pintura)
+    } else {
+      row.classList.add("no-anim"); // reordenar/add/remover = instantâneo
+    }
+
+    // drag handle (início da linha) — só ativa draggable enquanto segura o grip
+    const handle = document.createElement("button");
+    handle.className = "handle";
+    handle.type = "button";
+    handle.setAttribute("aria-label", "Arrastar para reordenar");
+    handle.title = "Arrastar para reordenar";
+    handle.textContent = "⠿";
 
     // left: glyph + city name (+ optional PRINCIPAL tag)
     const left = document.createElement("div");
@@ -86,6 +101,26 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     offset.className = "offset";
     offset.innerHTML = `<span class="gmt">${getOffsetLabel(tz, displayDate)}</span><span class="date">${formatDateShort(tz, displayDate)}</span>`;
 
+    // controls group (fim da linha): subir, descer, remover
+    const controls = document.createElement("div");
+    controls.className = "row-controls";
+
+    const moveUp = document.createElement("button");
+    moveUp.className = "move-up";
+    moveUp.type = "button";
+    moveUp.setAttribute("aria-label", "Mover para cima");
+    moveUp.title = "Subir";
+    moveUp.textContent = "↑";
+    if (i === 0) moveUp.disabled = true;
+
+    const moveDown = document.createElement("button");
+    moveDown.className = "move-down";
+    moveDown.type = "button";
+    moveDown.setAttribute("aria-label", "Mover para baixo");
+    moveDown.title = "Descer";
+    moveDown.textContent = "↓";
+    if (i === valid.length - 1) moveDown.disabled = true;
+
     // remove control
     const remove = document.createElement("button");
     remove.className = "remove";
@@ -94,7 +129,8 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     remove.setAttribute("aria-label", `Remover ${getCityLabel(tz)}`);
     remove.textContent = "✕";
 
-    row.append(left, timeWrap, offset, remove);
+    controls.append(moveUp, moveDown, remove);
+    row.append(handle, left, timeWrap, offset, controls);
     grid.append(row);
 
     // stash live refs for updateTimes
@@ -103,6 +139,8 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     row._glyph = glyph;
     row._offset = offset;
   });
+
+  firstPaint = false; // cascata só na 1ª pintura
 }
 
 // updateTimes — called each tick / comparator change. Flips only changed chars,
@@ -148,19 +186,80 @@ export function updateTimes({ grid, displayDate, colorHint, hour12 }) {
   });
 }
 
-// Attach click (set reference) + remove listeners. Called once after renderBoard.
+// Attach click (set reference) + remove + reorder (arrows & drag). Called once after renderBoard.
 export function wireBoard(grid, handlers) {
+  // Ordem atual das linhas conforme o DOM.
+  const order = () => [...grid.querySelectorAll(".row")].map(r => r.dataset.tz);
+
+  let dragged = null; // linha sendo arrastada (escopo desta wireBoard)
+
   grid.querySelectorAll(".row").forEach(row => {
+    // clique no corpo da linha → define referência; ignora controles e grip
     row.addEventListener("click", e => {
-      if (e.target.closest(".remove")) return;
+      if (e.target.closest(".row-controls") || e.target.closest(".handle")) return;
       handlers.onSetReference(row.dataset.tz);
     });
-  });
-  grid.querySelectorAll(".remove").forEach(btn =>
-    btn.addEventListener("click", e => {
+
+    // setas: reordena uma posição
+    const up = row.querySelector(".move-up");
+    const down = row.querySelector(".move-down");
+    if (up) up.addEventListener("click", e => {
+      e.stopPropagation();
+      const o = order();
+      const i = o.indexOf(row.dataset.tz);
+      if (i > 0) { [o[i - 1], o[i]] = [o[i], o[i - 1]]; handlers.onReorder(o); }
+    });
+    if (down) down.addEventListener("click", e => {
+      e.stopPropagation();
+      const o = order();
+      const i = o.indexOf(row.dataset.tz);
+      if (i < o.length - 1) { [o[i], o[i + 1]] = [o[i + 1], o[i]]; handlers.onReorder(o); }
+    });
+
+    // remover
+    const remove = row.querySelector(".remove");
+    if (remove) remove.addEventListener("click", e => {
       e.stopPropagation(); // não dispara onSetReference
-      handlers.onRemove(e.target.closest(".row").dataset.tz);
-    }));
+      handlers.onRemove(row.dataset.tz);
+    });
+
+    // grip: drag só inicia ao segurar o ⠿; corpo da linha continua clicável
+    const handle = row.querySelector(".handle");
+    if (handle) {
+      const enable = () => { row.draggable = true; };
+      const disable = () => { row.draggable = false; };
+      handle.addEventListener("pointerdown", enable);
+      handle.addEventListener("mousedown", enable);
+      handle.addEventListener("pointerup", disable);
+      handle.addEventListener("click", e => e.stopPropagation()); // não define referência
+    }
+
+    row.addEventListener("dragstart", e => {
+      dragged = row;
+      row.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+      e.dataTransfer.setData("text/plain", row.dataset.tz);
+    });
+    row.addEventListener("dragend", () => {
+      row.classList.remove("dragging");
+      row.draggable = false;
+      dragged = null;
+      handlers.onReorder(order()); // persiste a ordem final do DOM
+    });
+  });
+
+  // dragover/drop no container: reordenação ao vivo conforme o cursor
+  grid.addEventListener("dragover", e => {
+    e.preventDefault();
+    if (!dragged) return;
+    const over = e.target.closest(".row");
+    if (!over || over === dragged) return;
+    const rect = over.getBoundingClientRect();
+    const after = e.clientY > rect.top + rect.height / 2;
+    const refNode = after ? over.nextSibling : over;
+    if (refNode !== dragged) over.parentNode.insertBefore(dragged, refNode);
+  });
+  grid.addEventListener("drop", e => e.preventDefault());
 }
 
 export function renderSearch(resultsEl, matches, onPick) {
