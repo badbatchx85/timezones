@@ -16,6 +16,10 @@ export function getCityLabel(timeZone) {
   return timeZone.split("/").pop().replaceAll("_", " ");
 }
 
+export function getLocalZone() {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+}
+
 const REGIONS = {
   America: "América", Europe: "Europa", Asia: "Ásia", Africa: "África",
   Australia: "Austrália", Pacific: "Pacífico", Atlantic: "Atlântico",

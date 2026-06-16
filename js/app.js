@@ -1,6 +1,6 @@
 import { createStore } from "./store.js";
 import { startClock } from "./clock.js";
-import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute, isValidZone } from "./tz.js";
+import { listAllZones, dateForReferenceMinute, formatTime, getCityLabel, minuteToHHMM, hhmmToMinute, isValidZone, getLocalZone } from "./tz.js";
 import { renderGrid, renderSearch } from "./ui.js";
 
 const store = createStore();
@@ -43,7 +43,8 @@ function startComparing(minute) {
 
 // Sugestões na primeira visita.
 if (store.getCities().length === 0) {
-  ["America/Sao_Paulo", "America/New_York", "Europe/London", "Asia/Tokyo"].forEach(tz => store.addCity(tz));
+  [getLocalZone(), "America/Sao_Paulo", "America/New_York", "Europe/London", "Asia/Tokyo"]
+    .forEach(tz => store.addCity(tz));
 }
 
 let currentDate = new Date();
