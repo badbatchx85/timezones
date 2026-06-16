@@ -67,7 +67,11 @@ function rebuild() {
       if (store.getReference() === tz) store.clearReference();
       rebuild();
     },
-    onSetReference: tz => { store.setReference(tz); rebuild(); },
+    onSetReference: tz => {
+      store.setReference(tz);
+      comparing = false; timeInput.value = ""; // troca de referência volta ao vivo
+      rebuild(); // tick reposiciona a barra na hora local da nova referência
+    },
     onReorder: newOrder => { store.setCities(newOrder); rebuild(); },
   });
   tick();
@@ -84,6 +88,8 @@ function tick() {
   });
   refreshLabels(date);
   updateMasthead();
+  // ao vivo: a barra acompanha o horário local da cidade de referência (escala 24h)
+  if (!comparing) slider.value = String(zoneMinuteOfDay(store.getReference(), currentDate));
 }
 
 function updateMasthead() {
@@ -129,9 +135,7 @@ timeInput.addEventListener("input", () => {
 resetBtn.addEventListener("click", () => {
   comparing = false;
   timeInput.value = ""; // volta o campo para "--:--"
-  // posiciona o trilho na hora ATUAL da cidade de referência
-  slider.value = String(zoneMinuteOfDay(store.getReference(), currentDate));
-  tick();
+  tick(); // tick reposiciona a barra na hora atual da referência
 });
 
 // Build inicial (revelação em cascata + flip de assentamento via CSS).
