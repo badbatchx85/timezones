@@ -6,6 +6,8 @@ const REDUCED_MOTION = typeof window !== "undefined" && window.matchMedia
 
 // A cascata de revelação só roda no primeiro desenho; reordenar/add/remover é instantâneo.
 let firstPaint = true;
+// Fuso que acabou de ser movido (arrastar/setas) → pulso de "encaixe" no próximo render.
+let justDropped = null;
 
 // Glyph + row-state class derived from dayPart.
 function partGlyph(part) {
@@ -59,6 +61,8 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     row.dataset.tz = tz;
     if (firstPaint) {
       row.style.animationDelay = `${i * 70}ms`; // staggered cascade reveal (1ª pintura)
+    } else if (tz === justDropped) {
+      row.classList.add("just-dropped"); // pulso de encaixe na linha recém-movida
     } else {
       row.classList.add("no-anim"); // reordenar/add/remover = instantâneo
     }
@@ -141,6 +145,7 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
   });
 
   firstPaint = false; // cascata só na 1ª pintura
+  justDropped = null; // pulso consumido neste render
 }
 
 // updateTimes — called each tick / comparator change. Flips only changed chars,
@@ -167,12 +172,12 @@ export function updateTimes({ grid, displayDate, colorHint, hour12 }) {
     }
     row._lastTime = next;
 
-    // glyph + row colour state
+    // glyph + row colour state — atualização cirúrgica (preserva no-anim/just-dropped/dragging/is-ref)
     const part = colorHint ? dayPart(tz, displayDate) : "outro";
     const desiredGlyph = colorHint ? partGlyph(part) : "☀";
     if (row._glyph && row._glyph.textContent !== desiredGlyph) row._glyph.textContent = desiredGlyph;
-    const isRef = row.classList.contains("is-ref");
-    row.className = `row ${partRowClass(part)} ${isRef ? "is-ref" : ""}`;
+    row.classList.remove("neutral", "comercial", "night");
+    row.classList.add(partRowClass(part));
 
     // offset + date
     if (row._offset) {
@@ -207,13 +212,13 @@ export function wireBoard(grid, handlers) {
       e.stopPropagation();
       const o = order();
       const i = o.indexOf(row.dataset.tz);
-      if (i > 0) { [o[i - 1], o[i]] = [o[i], o[i - 1]]; handlers.onReorder(o); }
+      if (i > 0) { [o[i - 1], o[i]] = [o[i], o[i - 1]]; justDropped = row.dataset.tz; handlers.onReorder(o); }
     });
     if (down) down.addEventListener("click", e => {
       e.stopPropagation();
       const o = order();
       const i = o.indexOf(row.dataset.tz);
-      if (i < o.length - 1) { [o[i], o[i + 1]] = [o[i + 1], o[i]]; handlers.onReorder(o); }
+      if (i < o.length - 1) { [o[i], o[i + 1]] = [o[i + 1], o[i]]; justDropped = row.dataset.tz; handlers.onReorder(o); }
     });
 
     // remover
@@ -244,6 +249,7 @@ export function wireBoard(grid, handlers) {
       row.classList.remove("dragging");
       row.draggable = false;
       dragged = null;
+      justDropped = row.dataset.tz; // pulso de encaixe na linha recém-solta
       handlers.onReorder(order()); // persiste a ordem final do DOM
     });
   });
