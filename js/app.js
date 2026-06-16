@@ -68,6 +68,7 @@ function rebuild() {
       rebuild();
     },
     onSetReference: tz => { store.setReference(tz); rebuild(); },
+    onReorder: newOrder => { store.setCities(newOrder); rebuild(); },
   });
   tick();
 }

@@ -38,6 +38,9 @@ export function createStore(storage = window.localStorage) {
     removeCity(tz) {
       writeJSON(CITIES_KEY, readJSON(CITIES_KEY, []).filter(c => c !== tz));
     },
+    setCities(arr) {
+      writeJSON(CITIES_KEY, Array.isArray(arr) ? arr : []);
+    },
     getReference() {
       return readJSON(REF_KEY, null) || localZone();
     },

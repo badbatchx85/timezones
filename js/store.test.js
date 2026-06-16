@@ -19,6 +19,14 @@ it("addCity/getCities persiste e não duplica", () => {
   assertEqual(s.getCities()[0], "America/Sao_Paulo");
 });
 
+it("setCities persiste a ordem dada", () => {
+  const s = createStore(fakeStorage());
+  s.addCity("America/Sao_Paulo"); s.addCity("Asia/Tokyo");
+  s.setCities(["Asia/Tokyo", "America/Sao_Paulo"]);
+  assertEqual(s.getCities()[0], "Asia/Tokyo");
+  assertEqual(s.getCities()[1], "America/Sao_Paulo");
+});
+
 it("removeCity remove", () => {
   const s = createStore(fakeStorage());
   s.addCity("Europe/London");
