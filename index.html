@@ -3,77 +3,389 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Relógios Mundiais</title>
+  <title>WORLD TIMETABLE — Relógios Mundiais</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#f4f5f7; --card:#fff; --line:#e3e6ea; --muted:#888;
-            --ok-bg:#eef6ee; --ok-line:#bcdcbc; --ok-text:#3a8a3a;
-            --bad-bg:#fbeceb; --bad-line:#e6bcb8; --bad-text:#c0392b; }
+    :root {
+      --bg:#0a0a0a;
+      --panel:#141210;
+      --panel-2:#171411;
+      --line:#2a2520;
+      --amber:#ffb300;
+      --amber-dim:#8a6a1f;
+      --cream:#f3e7c9;
+      --night:#5b8cff;
+      --flap-bg:#1c1814;
+      --flap-bg-2:#15110d;
+      --glow: 0 0 8px rgba(255,179,0,.45), 0 0 22px rgba(255,179,0,.12);
+    }
     * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin:0; background:var(--bg); color:#222; }
-    header { padding:16px; }
-    h1 { font-size:20px; margin:0 0 12px; }
-    #search { width:100%; padding:13px 14px; border:1px solid var(--line);
-              border-radius:8px; font-size:16px; }
-    #results { list-style:none; margin:6px 0 0; padding:0; max-height:220px; overflow:auto; }
-    #results li { padding:8px 12px; background:var(--card); border:1px solid var(--line);
-                  border-top:none; cursor:pointer; }
-    #results li:hover { background:#f0f1f3; }
-    main { padding:0 16px 16px; }
-    #grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
-            padding:14px; text-align:center; position:relative; }
-    .card.comercial { background:var(--ok-bg); border-color:var(--ok-line); }
-    .card.madrugada { background:var(--bad-bg); border-color:var(--bad-line); }
-    .card .name { font-weight:600; font-size:14px; }
-    .card .time { font-size:24px; font-weight:700; margin:4px 0; letter-spacing:-1px; }
-    .card .meta { color:var(--muted); font-size:11px; }
-    .card { cursor:pointer; }
-    .card.is-ref { border:2px solid #2a6cc0; box-shadow:0 0 0 1px #2a6cc0; }
-    .card .badge { position:absolute; top:-9px; left:50%; transform:translateX(-50%);
-                   background:#2a6cc0; color:#fff; font-size:10px; padding:1px 8px;
-                   border-radius:8px; letter-spacing:.5px; }
-    .card .remove { position:absolute; top:6px; right:8px; background:none; border:none;
-                    color:#bbb; cursor:pointer; font-size:12px; line-height:1; padding:2px; }
-    .card .remove:hover { color:#c0392b; }
-    #results li { display:flex; justify-content:space-between; align-items:center; }
-    .r-region { color:#aaa; font-size:12px; font-weight:400; margin-left:8px; }
-    .r-time { color:#888; font-size:13px; white-space:nowrap; }
-    #comparator { background:var(--card); border:1px solid var(--line); border-radius:10px;
-                  padding:12px; margin-bottom:12px; }
-    #comparator .row { display:flex; justify-content:space-between; font-size:12px;
-                       color:var(--muted); margin-bottom:8px; }
-    #slider { width:100%; }
-    #timeInput { font-size:13px; padding:4px 6px; border:1px solid var(--line);
-                 border-radius:6px; }
-    #comparator .time-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-    #comparator .time-row label { font-size:12px; color:var(--muted); }
-    #reset { background:none; border:none; color:#2a6cc0; cursor:pointer; font-size:12px; }
-    .empty { color:var(--muted); font-size:14px; padding:20px 0; text-align:center; }
+    html, body { margin:0; }
+    body {
+      background:var(--bg);
+      color:var(--cream);
+      font-family:"Oswald", system-ui, sans-serif;
+      min-height:100vh;
+      position:relative;
+      overflow-x:hidden;
+      -webkit-font-smoothing:antialiased;
+    }
+    /* Atmosphere: warm radial vignette */
+    body::before {
+      content:"";
+      position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:
+        radial-gradient(120% 90% at 50% -10%, rgba(255,179,0,.10), rgba(255,179,0,0) 45%),
+        radial-gradient(140% 120% at 50% 120%, rgba(0,0,0,.85), rgba(0,0,0,0) 60%),
+        radial-gradient(100% 100% at 50% 50%, rgba(0,0,0,0) 55%, rgba(0,0,0,.65) 100%);
+    }
+    /* Atmosphere: faint scanlines + grain */
+    body::after {
+      content:"";
+      position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.5;
+      background:
+        repeating-linear-gradient(to bottom,
+          rgba(255,255,255,.018) 0px,
+          rgba(255,255,255,.018) 1px,
+          rgba(0,0,0,0) 2px,
+          rgba(0,0,0,0) 4px);
+      mix-blend-mode:overlay;
+    }
+    .wrap { position:relative; z-index:1; max-width:880px; margin:0 auto; padding:28px 20px 64px; }
+
+    /* ============ MASTHEAD ============ */
+    .masthead { margin-bottom:22px; }
+    .masthead-top {
+      display:flex; align-items:flex-end; justify-content:space-between;
+      gap:16px; flex-wrap:wrap;
+    }
+    .brand { display:flex; flex-direction:column; gap:2px; }
+    .kicker {
+      font-family:"Oswald", sans-serif; font-weight:600; font-size:11px;
+      letter-spacing:.42em; text-transform:uppercase; color:var(--amber-dim);
+      display:flex; align-items:center; gap:9px;
+    }
+    .lamp {
+      width:8px; height:8px; border-radius:50%; background:var(--amber);
+      box-shadow:var(--glow); animation:blink 2.4s steps(1,end) infinite;
+    }
+    @keyframes blink { 0%,72% { opacity:1 } 73%,100% { opacity:.18 } }
+    h1.title {
+      font-family:"Anton", sans-serif; font-weight:400;
+      font-size:clamp(34px, 8vw, 60px); line-height:.92; margin:0;
+      letter-spacing:.02em; color:var(--cream);
+      text-shadow:0 1px 0 #000, 0 0 30px rgba(255,179,0,.10);
+    }
+    h1.title .accent { color:var(--amber); text-shadow:var(--glow); }
+    .clock-block { text-align:right; font-family:"DM Mono", monospace; }
+    .clock-block .lt {
+      font-size:clamp(22px,5vw,30px); font-weight:500; color:var(--amber);
+      text-shadow:var(--glow); letter-spacing:.04em; line-height:1;
+    }
+    .clock-block .ld {
+      font-size:11px; color:var(--amber-dim); letter-spacing:.18em;
+      text-transform:uppercase; margin-top:6px;
+    }
+    .rule {
+      height:2px; margin:18px 0 0;
+      background:linear-gradient(to right,
+        rgba(255,179,0,0), var(--amber-dim) 12%, var(--amber) 50%, var(--amber-dim) 88%, rgba(255,179,0,0));
+      opacity:.7;
+    }
+
+    /* ============ SEARCH ============ */
+    .search-wrap { position:relative; margin:18px 0 0; }
+    #search {
+      width:100%; padding:14px 16px; background:var(--panel);
+      border:1px solid var(--line); border-radius:4px; color:var(--cream);
+      font-family:"Oswald", sans-serif; font-size:15px; font-weight:500;
+      letter-spacing:.12em; text-transform:uppercase; outline:none;
+      transition:border-color .15s, box-shadow .15s;
+    }
+    #search::placeholder { color:var(--amber-dim); letter-spacing:.12em; }
+    #search:focus { border-color:var(--amber-dim); box-shadow:0 0 0 1px var(--amber-dim), 0 0 18px rgba(255,179,0,.08); }
+    #results {
+      list-style:none; margin:6px 0 0; padding:0; max-height:300px; overflow:auto;
+      border:1px solid var(--line); border-radius:4px; background:var(--panel);
+    }
+    #results:empty { border:none; }
+    #results li {
+      display:flex; justify-content:space-between; align-items:center; gap:12px;
+      padding:11px 14px; border-bottom:1px solid var(--line); cursor:pointer;
+      transition:background .12s;
+    }
+    #results li:last-child { border-bottom:none; }
+    #results li:hover { background:var(--panel-2); }
+    #results .r-name { font-family:"Oswald"; font-weight:600; font-size:14px;
+      letter-spacing:.1em; text-transform:uppercase; color:var(--cream); }
+    #results .r-region { color:var(--amber-dim); font-size:11px; font-weight:400;
+      letter-spacing:.14em; margin-left:10px; text-transform:uppercase; }
+    #results .r-time { font-family:"DM Mono", monospace; font-size:13px;
+      color:var(--amber); white-space:nowrap; letter-spacing:.04em; }
+    #results .r-add { color:var(--amber-dim); margin-left:8px; font-weight:700; }
+    #results li:hover .r-add { color:var(--amber); }
+
+    /* ============ COMPARATOR ============ */
+    #comparator {
+      margin:20px 0 18px; background:var(--panel);
+      border:1px solid var(--line); border-radius:4px; padding:16px 18px;
+    }
+    .cmp-head {
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      flex-wrap:wrap; margin-bottom:14px;
+    }
+    .cmp-title { font-family:"Anton"; font-size:14px; letter-spacing:.18em;
+      color:var(--amber-dim); text-transform:uppercase; }
+    #ref-label { font-family:"DM Mono", monospace; font-size:12px; color:var(--cream);
+      letter-spacing:.03em; }
+    #ref-label .ref-key { color:var(--amber-dim); }
+    #ref-label .ref-val { color:var(--amber); }
+    .cmp-controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+    .time-row { display:flex; align-items:center; gap:10px; }
+    .time-row label { font-family:"Oswald"; font-size:11px; letter-spacing:.16em;
+      text-transform:uppercase; color:var(--amber-dim); }
+    #timeInput {
+      font-family:"DM Mono", monospace; font-size:14px; padding:7px 9px;
+      background:var(--flap-bg); border:1px solid var(--line); border-radius:3px;
+      color:var(--amber); letter-spacing:.04em; color-scheme:dark;
+    }
+    #timeInput:focus { outline:none; border-color:var(--amber-dim); }
+    #reset {
+      background:none; border:1px solid var(--line); border-radius:3px;
+      color:var(--amber); cursor:pointer; font-family:"Oswald"; font-size:11px;
+      font-weight:600; letter-spacing:.14em; text-transform:uppercase; padding:7px 12px;
+      transition:border-color .15s, color .15s, box-shadow .15s;
+    }
+    #reset:hover { border-color:var(--amber-dim); box-shadow:0 0 14px rgba(255,179,0,.1); }
+    /* Mechanical rail slider */
+    #slider { -webkit-appearance:none; appearance:none; width:100%; height:24px;
+      background:transparent; cursor:pointer; margin-top:4px; }
+    #slider::-webkit-slider-runnable-track {
+      height:6px; border-radius:3px;
+      background:linear-gradient(to right, var(--amber-dim), var(--amber));
+      border:1px solid #000; box-shadow:inset 0 1px 2px rgba(0,0,0,.6);
+    }
+    #slider::-moz-range-track {
+      height:6px; border-radius:3px;
+      background:linear-gradient(to right, var(--amber-dim), var(--amber));
+      border:1px solid #000;
+    }
+    #slider::-webkit-slider-thumb {
+      -webkit-appearance:none; appearance:none; margin-top:-7px;
+      width:14px; height:20px; border-radius:2px;
+      background:linear-gradient(180deg, #2a2520, #15110d);
+      border:1px solid var(--amber-dim); box-shadow:0 0 8px rgba(255,179,0,.25);
+    }
+    #slider::-moz-range-thumb {
+      width:14px; height:20px; border-radius:2px;
+      background:linear-gradient(180deg, #2a2520, #15110d);
+      border:1px solid var(--amber-dim);
+    }
+    /* board-style switches */
+    .switch { display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+      font-family:"Oswald"; font-size:11px; font-weight:600; letter-spacing:.14em;
+      text-transform:uppercase; color:var(--amber-dim); user-select:none; }
+    .switch input { position:absolute; opacity:0; width:0; height:0; }
+    .switch .track {
+      width:34px; height:16px; border-radius:9px; background:var(--flap-bg);
+      border:1px solid var(--line); position:relative; transition:border-color .15s, background .15s;
+    }
+    .switch .track::after {
+      content:""; position:absolute; top:1px; left:1px; width:12px; height:12px;
+      border-radius:50%; background:var(--amber-dim); transition:transform .18s, background .18s, box-shadow .18s;
+    }
+    .switch input:checked + .track { border-color:var(--amber-dim); }
+    .switch input:checked + .track::after { transform:translateX(18px); background:var(--amber); box-shadow:var(--glow); }
+    .switch input:checked ~ .switch-label { color:var(--cream); }
+    .switch:focus-within .track { box-shadow:0 0 0 2px rgba(255,179,0,.25); }
+
+    /* ============ BOARD ============ */
+    .board {
+      background:linear-gradient(180deg, var(--panel), var(--panel-2));
+      border:1px solid var(--line); border-radius:6px; overflow:hidden;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,.5), 0 18px 50px rgba(0,0,0,.55);
+    }
+    .col-head {
+      display:grid; grid-template-columns:1fr auto auto 32px; align-items:center;
+      gap:14px; padding:10px 18px; border-bottom:1px solid var(--line);
+      font-family:"Oswald"; font-size:10px; font-weight:600; letter-spacing:.26em;
+      text-transform:uppercase; color:var(--amber-dim); background:rgba(0,0,0,.25);
+    }
+    .col-head .ch-fuso { text-align:right; min-width:64px; }
+    #grid { display:flex; flex-direction:column; }
+
+    .row {
+      display:grid; grid-template-columns:1fr auto auto 32px; align-items:center;
+      gap:14px; padding:14px 18px; border-bottom:1px solid var(--line);
+      position:relative; cursor:pointer;
+      transition:background .15s;
+    }
+    .row:last-child { border-bottom:none; }
+    .row:nth-child(even) { background:rgba(255,255,255,.012); }
+    .row::before {
+      content:""; position:absolute; left:0; top:0; bottom:0; width:3px;
+      background:transparent; transition:background .2s, box-shadow .2s;
+    }
+    .row:hover { background:rgba(255,179,0,.05); }
+    .row.is-ref::before { background:var(--amber); box-shadow:var(--glow); }
+    .row.is-ref { background:rgba(255,179,0,.045); }
+
+    .row-city { display:flex; align-items:center; gap:11px; min-width:0; }
+    .glyph { font-size:17px; line-height:1; color:var(--amber); flex:none;
+      filter:drop-shadow(0 0 4px rgba(255,179,0,.4)); }
+    .row.night .glyph { color:var(--night); filter:drop-shadow(0 0 4px rgba(91,140,255,.45)); }
+    .city-name {
+      font-family:"Oswald"; font-weight:600; font-size:16px; letter-spacing:.1em;
+      text-transform:uppercase; color:var(--cream); white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+    .row.comercial .city-name { color:#fff; }
+    .tag-ref {
+      font-family:"Oswald"; font-size:9px; font-weight:700; letter-spacing:.2em;
+      color:var(--amber); border:1px solid var(--amber-dim); border-radius:3px;
+      padding:2px 6px; text-transform:uppercase; flex:none;
+      box-shadow:0 0 10px rgba(255,179,0,.12); white-space:nowrap;
+    }
+    .tag-ref .dot { color:var(--amber); }
+
+    /* split-flap time */
+    .time { display:inline-flex; gap:3px; }
+    .flap {
+      display:inline-flex; align-items:center; justify-content:center;
+      font-family:"DM Mono", monospace; font-weight:500;
+      font-size:clamp(22px, 5.2vw, 30px); line-height:1;
+      width:.78em; height:1.18em; border-radius:3px;
+      background:linear-gradient(180deg, var(--flap-bg) 0% 50%, var(--flap-bg-2) 50% 100%);
+      border:1px solid #000;
+      box-shadow:inset 0 0 0 1px rgba(255,255,255,.02), 0 1px 2px rgba(0,0,0,.5);
+      color:var(--amber); text-shadow:var(--glow);
+      position:relative; backface-visibility:hidden;
+      transform-origin:center; perspective:200px;
+    }
+    .flap.colon {
+      background:none; border:none; box-shadow:none; width:.34em;
+      text-shadow:0 0 6px rgba(255,179,0,.4);
+    }
+    .flap.gap {
+      background:none; border:none; box-shadow:none; width:.3em; text-shadow:none;
+    }
+    .flap.gap::after { display:none; }
+    .row.night .flap:not(.colon) { color:#cdd9ff; text-shadow:0 0 8px rgba(91,140,255,.4); }
+    .flap::after {
+      content:""; position:absolute; left:2px; right:2px; top:50%; height:1px;
+      background:rgba(0,0,0,.55); transform:translateY(-.5px);
+    }
+    .flap.flip { animation:flap-turn .42s cubic-bezier(.45,.05,.3,1); }
+    @keyframes flap-turn {
+      0%   { transform:rotateX(0deg);   filter:brightness(1); }
+      48%  { transform:rotateX(-88deg); filter:brightness(.5); }
+      52%  { transform:rotateX(88deg);  filter:brightness(.55); }
+      100% { transform:rotateX(0deg);   filter:brightness(1); }
+    }
+    .offset {
+      font-family:"DM Mono", monospace; font-size:12px; color:var(--amber-dim);
+      letter-spacing:.04em; text-align:right; min-width:64px; white-space:nowrap;
+    }
+    .offset .date { display:block; font-size:10px; color:#6a5a3f; margin-top:2px; }
+
+    .remove {
+      justify-self:center; width:28px; height:28px;
+      display:flex; align-items:center; justify-content:center;
+      background:none; border:none; color:var(--amber-dim); cursor:pointer;
+      font-size:14px; line-height:1; padding:0; border-radius:4px;
+      opacity:0; transition:opacity .15s, color .15s, background .15s;
+    }
+    .row:hover .remove, .remove:focus-visible { opacity:1; }
+    .remove:hover { color:var(--amber); background:rgba(255,179,0,.08); }
+
+    /* load reveal */
+    .row { animation:row-in .5s both; }
+    @keyframes row-in {
+      from { opacity:0; transform:translateY(8px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+
+    .empty {
+      font-family:"Oswald"; color:var(--amber-dim); font-size:13px; letter-spacing:.16em;
+      text-transform:uppercase; padding:34px 18px; text-align:center;
+    }
+
+    @media (max-width:540px) {
+      .col-head, .row { grid-template-columns:1fr auto 32px; }
+      .col-head .ch-fuso, .offset { display:none; }
+      .row { gap:8px; }
+      .flap { font-size:clamp(20px,8vw,26px); }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .lamp, .row { animation:none !important; }
+      .flap.flip { animation:none !important; }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>🌍 Relógios Mundiais</h1>
-    <input id="search" type="search" placeholder="＋ Adicionar cidade…" autocomplete="off">
-    <ul id="results"></ul>
-  </header>
-  <main>
-    <section id="comparator">
-      <div class="row">
-        <button id="reset">↩︎ Voltar para agora</button>
-        <label style="cursor:pointer"><input id="colorToggle" type="checkbox" checked> cores</label>
-        <label style="cursor:pointer"><input id="fmtToggle" type="checkbox"> 12h</label>
-        <span id="ref-label"></span>
+  <div class="wrap">
+    <header class="masthead">
+      <div class="masthead-top">
+        <div class="brand">
+          <div class="kicker"><span class="lamp" aria-hidden="true"></span>Departures · Relógios Mundiais</div>
+          <h1 class="title">WORLD <span class="accent">TIMETABLE</span></h1>
+        </div>
+        <div class="clock-block" aria-label="Hora local">
+          <div class="lt" id="localTime">--:--</div>
+          <div class="ld" id="localDate">—</div>
+        </div>
       </div>
-      <div class="time-row">
-        <label for="timeInput">Horário na referência:</label>
-        <input id="timeInput" type="time">
+      <div class="rule" aria-hidden="true"></div>
+
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="＋ Add destination…" autocomplete="off"
+               aria-label="Adicionar cidade">
+        <ul id="results"></ul>
       </div>
-      <input id="slider" type="range" min="0" max="1439" step="5">
-    </section>
-    <div id="grid"></div>
-    <p id="empty" class="empty" hidden>Nenhuma cidade ainda. Busque acima para adicionar.</p>
-  </main>
+    </header>
+
+    <main>
+      <section id="comparator" aria-label="Simular horário">
+        <div class="cmp-head">
+          <span class="cmp-title">Schedule · Simular Horário</span>
+          <span id="ref-label"></span>
+        </div>
+        <div class="cmp-controls">
+          <div class="time-row">
+            <label for="timeInput">Hora na referência</label>
+            <input id="timeInput" type="time" aria-label="Horário na referência">
+          </div>
+          <button id="reset" aria-label="Voltar para agora">↩︎ Voltar para agora</button>
+          <label class="switch">
+            <input id="colorToggle" type="checkbox" checked>
+            <span class="track" aria-hidden="true"></span>
+            <span class="switch-label">Cores</span>
+          </label>
+          <label class="switch">
+            <input id="fmtToggle" type="checkbox">
+            <span class="track" aria-hidden="true"></span>
+            <span class="switch-label">12h</span>
+          </label>
+        </div>
+        <input id="slider" type="range" min="0" max="1439" step="5" aria-label="Minuto do dia">
+      </section>
+
+      <section class="board" aria-label="Quadro de cidades">
+        <div class="col-head">
+          <span>Cidade</span>
+          <span>Hora</span>
+          <span class="ch-fuso">Fuso</span>
+          <span class="ch-gutter" aria-hidden="true"></span>
+        </div>
+        <div id="grid"></div>
+      </section>
+      <p id="empty" class="empty" hidden>Nenhuma cidade ainda · busque acima para adicionar</p>
+    </main>
+  </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
