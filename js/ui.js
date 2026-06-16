@@ -1,7 +1,7 @@
 import { formatTime, formatDateShort, getOffsetLabel, getCityLabel, dayPart, isValidZone } from "./tz.js";
 
 // Desenha a grade. `displayDate` é a hora atual OU a hora derivada do comparador.
-export function renderGrid({ grid, emptyEl, cities, displayDate, referenceTz, colorHint, handlers }) {
+export function renderGrid({ grid, emptyEl, cities, displayDate, referenceTz, colorHint, hour12, handlers }) {
   emptyEl.hidden = cities.length > 0;
   grid.innerHTML = cities.map(tz => {
     if (!isValidZone(tz)) return ""; // fuso inválido salvo: ignorado com segurança
@@ -12,7 +12,7 @@ export function renderGrid({ grid, emptyEl, cities, displayDate, referenceTz, co
         <button class="ref" title="Definir como referência">🎯</button>
         <button class="star" title="Remover">⭐</button>
         <div class="name">${getCityLabel(tz)}</div>
-        <div class="time">${formatTime(tz, displayDate)}</div>
+        <div class="time">${formatTime(tz, displayDate, hour12)}</div>
         <div class="meta">${formatDateShort(tz, displayDate)} · ${getOffsetLabel(tz, displayDate)}</div>
       </div>`;
   }).join("");

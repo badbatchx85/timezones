@@ -12,6 +12,12 @@ it("formatTime devolve HH:MM no fuso pedido", () => {
   assertEqual(formatTime("Asia/Tokyo", ref), "03:00");
 });
 
+it("formatTime respeita o parâmetro hour12", () => {
+  assertEqual(formatTime("America/Sao_Paulo", ref, false), "15:00");        // 24h padrão
+  assertEqual(formatTime("America/Sao_Paulo", ref, true), "03:00 PM");      // 12h → 15:00 = 3 PM
+  assertEqual(formatTime("Asia/Tokyo", ref, true), "03:00 AM");             // 03:00 = 3 AM
+});
+
 it("getOffsetLabel devolve GMT±N", () => {
   assertEqual(getOffsetLabel("America/Sao_Paulo", ref), "GMT-3");
   assertEqual(getOffsetLabel("Asia/Tokyo", ref), "GMT+9");
