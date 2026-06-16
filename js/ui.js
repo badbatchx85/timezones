@@ -277,3 +277,75 @@ export function renderSearch(resultsEl, matches, onPick) {
   resultsEl.querySelectorAll("li").forEach(li =>
     li.addEventListener("click", () => onPick(li.dataset.tz)));
 }
+
+// renderTabs — desenha as abas de grupo e fia eventos.
+// state: { groups:[{id,name}], activeId, canDelete, editId }
+// handlers: { onSwitch(id), onCreate(), onRename(id, name), onDelete(id) }
+export function renderTabs(container, state, handlers) {
+  container.innerHTML = "";
+  state.groups.forEach(g => {
+    const tab = document.createElement("button");
+    tab.type = "button";
+    tab.className = `tab ${g.id === state.activeId ? "active" : ""}`;
+    tab.dataset.id = g.id;
+
+    const label = document.createElement("span");
+    label.className = "tab-label";
+    label.textContent = g.name;
+    tab.append(label);
+
+    if (g.id === state.activeId && state.canDelete) {
+      const x = document.createElement("span");
+      x.className = "tab-x";
+      x.title = "Apagar grupo";
+      x.setAttribute("aria-label", `Apagar grupo ${g.name}`);
+      x.textContent = "✕";
+      tab.append(x);
+    }
+
+    tab.addEventListener("click", e => {
+      if (e.target.closest(".tab-x")) { handlers.onDelete(g.id); return; }
+      if (g.id !== state.activeId) handlers.onSwitch(g.id);
+    });
+    tab.addEventListener("dblclick", e => {
+      if (e.target.closest(".tab-x")) return;
+      startRename(tab, label, g, handlers);
+    });
+
+    container.append(tab);
+    if (state.editId && g.id === state.editId) startRename(tab, label, g, handlers);
+  });
+
+  const add = document.createElement("button");
+  add.type = "button";
+  add.className = "tab-add";
+  add.title = "Novo grupo";
+  add.setAttribute("aria-label", "Novo grupo");
+  add.textContent = "＋";
+  add.addEventListener("click", () => handlers.onCreate());
+  container.append(add);
+}
+
+// Edição inline do nome de um grupo.
+function startRename(tab, label, g, handlers) {
+  if (tab.querySelector(".tab-input")) return; // já editando
+  const input = document.createElement("input");
+  input.className = "tab-input";
+  input.value = g.name;
+  tab.replaceChild(input, label);
+  input.focus();
+  input.select();
+
+  let done = false;
+  const finish = commit => {
+    if (done) return;
+    done = true;
+    if (commit) handlers.onRename(g.id, input.value); // store ignora vazio → re-render restaura
+    else handlers.onRename(g.id, g.name);             // cancela: re-render com o nome atual
+  };
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); finish(true); }
+    else if (e.key === "Escape") { e.preventDefault(); finish(false); }
+  });
+  input.addEventListener("blur", () => finish(true));
+}

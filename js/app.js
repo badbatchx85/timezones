@@ -1,13 +1,14 @@
 import { createStore } from "./store.js";
 import { startClock } from "./clock.js";
 import { listAllZones, dateForReferenceMinute, formatTime, formatDateShort, getCityLabel, getLocalZone, minuteToHHMM, hhmmToMinute, isValidZone, zoneMinuteOfDay } from "./tz.js";
-import { renderBoard, updateTimes, wireBoard, renderSearch } from "./ui.js";
+import { renderBoard, updateTimes, wireBoard, renderSearch, renderTabs } from "./ui.js";
 
 const store = createStore();
 // Autocorreção: remove fusos inválidos persistidos antes do primeiro desenho.
 store.getCities().forEach(tz => { if (!isValidZone(tz)) store.removeCity(tz); });
 
 const grid = document.getElementById("grid");
+const tabsEl = document.getElementById("tabs");
 const emptyEl = document.getElementById("empty");
 const search = document.getElementById("search");
 const results = document.getElementById("results");
@@ -48,6 +49,43 @@ function refreshLabels(date) {
   const hour12 = store.getSettings().hour12;
   refLabel.innerHTML =
     `<span class="ref-key">Referência:</span> <span class="ref-val">${getCityLabel(refTz)} · ${formatTime(refTz, date, hour12)}</span>`;
+}
+
+// Desenha as abas de grupo. editId (opcional) entra direto em modo renomear.
+function paintTabs(editId) {
+  renderTabs(tabsEl, {
+    groups: store.getGroups(),
+    activeId: store.getActiveGroupId(),
+    canDelete: store.getGroups().length > 1,
+    editId,
+  }, {
+    onSwitch: id => {
+      store.setActiveGroup(id);
+      comparing = false; timeInput.value = ""; // troca de grupo volta ao vivo
+      renderAll();
+    },
+    onCreate: () => {
+      const id = store.addGroup();
+      comparing = false; timeInput.value = "";
+      renderAll(id); // novo grupo já entra em modo renomear
+    },
+    onRename: (id, name) => {
+      store.renameGroup(id, name);
+      paintTabs(); // só as abas mudam
+    },
+    onDelete: id => {
+      if (!window.confirm("Apagar este grupo e a lista de cidades dele?")) return;
+      store.removeGroup(id);
+      comparing = false; timeInput.value = "";
+      renderAll();
+    },
+  });
+}
+
+// Re-renderiza abas + quadro (evento estrutural).
+function renderAll(editId) {
+  paintTabs(editId);
+  rebuild();
 }
 
 // Reconstrói a estrutura do quadro (evento estrutural) e em seguida pinta as horas.
@@ -94,8 +132,10 @@ function tick() {
 
 function updateMasthead() {
   const hour12 = store.getSettings().hour12;
-  localTimeEl.textContent = formatTime(localZone, currentDate, hour12);
-  localDateEl.textContent = formatDateShort(localZone, currentDate) + " · " + getCityLabel(localZone);
+  // o relógio do masthead acompanha a cidade de REFERÊNCIA (principal) do grupo ativo
+  const refTz = store.getReference();
+  localTimeEl.textContent = formatTime(refTz, currentDate, hour12);
+  localDateEl.textContent = formatDateShort(refTz, currentDate) + " · " + getCityLabel(refTz);
 }
 
 // Entra/atualiza o modo de comparação (estrutura inalterada → só updateTimes).
@@ -139,7 +179,7 @@ resetBtn.addEventListener("click", () => {
 });
 
 // Build inicial (revelação em cascata + flip de assentamento via CSS).
-rebuild();
+renderAll();
 
 startClock(date => {
   currentDate = date;
