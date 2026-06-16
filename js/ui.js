@@ -90,7 +90,7 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     if (isRef) {
       const tag = document.createElement("span");
       tag.className = "tag-ref";
-      tag.innerHTML = `<span class="dot">●</span> Principal`;
+      tag.innerHTML = `<span class="dot">●</span> Referência`;
       left.append(tag);
     }
 
