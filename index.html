@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Relógios Mundiais</title>
+  <style>
+    :root { --bg:#f4f5f7; --card:#fff; --line:#e3e6ea; --muted:#888;
+            --ok-bg:#eef6ee; --ok-line:#bcdcbc; --ok-text:#3a8a3a;
+            --bad-bg:#fbeceb; --bad-line:#e6bcb8; --bad-text:#c0392b; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin:0; background:var(--bg); color:#222; }
+    header { padding:16px; }
+    h1 { font-size:20px; margin:0 0 12px; }
+    #search { width:100%; padding:10px 12px; border:1px solid var(--line);
+              border-radius:8px; font-size:14px; }
+    #results { list-style:none; margin:6px 0 0; padding:0; max-height:220px; overflow:auto; }
+    #results li { padding:8px 12px; background:var(--card); border:1px solid var(--line);
+                  border-top:none; cursor:pointer; }
+    #results li:hover { background:#f0f1f3; }
+    main { padding:0 16px 16px; }
+    #grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:10px;
+            padding:14px; text-align:center; position:relative; }
+    .card.comercial { background:var(--ok-bg); border-color:var(--ok-line); }
+    .card.madrugada { background:var(--bad-bg); border-color:var(--bad-line); }
+    .card .name { font-weight:600; font-size:14px; }
+    .card .time { font-size:24px; font-weight:700; margin:4px 0; letter-spacing:-1px; }
+    .card .meta { color:var(--muted); font-size:11px; }
+    .card .star, .card .ref { position:absolute; top:6px; cursor:pointer; background:none;
+            border:none; font-size:13px; }
+    .card .star { right:6px; }
+    .card .ref { left:6px; opacity:.5; }
+    .card.is-ref .ref { opacity:1; }
+    #comparator { background:var(--card); border:1px solid var(--line); border-radius:10px;
+                  padding:12px; margin-bottom:12px; }
+    #comparator .row { display:flex; justify-content:space-between; font-size:12px;
+                       color:var(--muted); margin-bottom:8px; }
+    #slider { width:100%; }
+    #timeInput { font-size:13px; padding:4px 6px; border:1px solid var(--line);
+                 border-radius:6px; }
+    #comparator .time-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    #comparator .time-row label { font-size:12px; color:var(--muted); }
+    #reset { background:none; border:none; color:#2a6cc0; cursor:pointer; font-size:12px; }
+    .empty { color:var(--muted); font-size:14px; padding:20px 0; text-align:center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌍 Relógios Mundiais</h1>
+    <input id="search" type="search" placeholder="🔍 Buscar cidade…" autocomplete="off">
+    <ul id="results"></ul>
+  </header>
+  <main>
+    <section id="comparator">
+      <div class="row">
+        <button id="reset">↩︎ Voltar para agora</button>
+        <label style="cursor:pointer"><input id="colorToggle" type="checkbox" checked> cores</label>
+        <span id="ref-label"></span>
+      </div>
+      <div class="time-row">
+        <label for="timeInput">Horário na referência:</label>
+        <input id="timeInput" type="time">
+      </div>
+      <input id="slider" type="range" min="0" max="1439" step="5">
+    </section>
+    <div id="grid"></div>
+    <p id="empty" class="empty" hidden>Nenhuma cidade ainda. Busque acima para adicionar.</p>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

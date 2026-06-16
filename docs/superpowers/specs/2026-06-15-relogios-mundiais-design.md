@@ -51,7 +51,7 @@ Princípio: concentrar **todo** acesso ao `Intl` em `tz` mantém o resto simples
 
 2. **Busca global** — campo que filtra todas as cidades/fusos disponíveis via `Intl.supportedValuesOf('timeZone')` (rótulos derivados do nome IANA: separar por `/`, trocar `_` por espaço). Clicar adiciona aos favoritos.
 
-3. **Comparador (agendar reuniões)** — um slider de horário de **referência** no fuso de uma cidade escolhida pelo usuário (padrão: fuso local detectado). Ao arrastar, todos os cartões mostram que horas seriam lá naquele momento, permitindo achar um horário que sirva para todos. Botão "voltar para agora" desliga o modo comparação.
+3. **Comparador (agendar reuniões)** — um slider **e** um campo de digitação de hora (`<input type="time">`), ambos controlando o mesmo horário de **referência** no fuso de uma cidade escolhida pelo usuário (padrão: fuso local detectado). Ao arrastar o slider ou digitar uma hora, todos os cartões mostram que horas seriam lá naquele momento, permitindo achar um horário que sirva para todos. O slider e o campo são sincronizados (mexer em um atualiza o outro). Como a referência pode ser qualquer favorita — inclusive o fuso local — digitar a hora cobre tanto "hora na cidade de referência" quanto "hora no meu fuso local". Botão "voltar para agora" desliga o modo comparação.
 
 4. **Dica de cor** — cada cartão recebe cor sutil conforme `tz.dayPart`: verde para horário comercial (09:00–18:00), vermelho para madrugada (00:00–06:00), neutro para o resto. Ajuda a bater o olho ao agendar.
 
