@@ -55,6 +55,10 @@ Princípio: concentrar **todo** acesso ao `Intl` em `tz` mantém o resto simples
 
 4. **Dica de cor** — cada cartão recebe cor sutil conforme `tz.dayPart`: verde para horário comercial (09:00–18:00), vermelho para madrugada (00:00–06:00), neutro para o resto. Ajuda a bater o olho ao agendar.
 
+5. **Escolher a cidade principal por clique** — clicar em qualquer cartão (fora do controle de remover) o define como cidade de **referência**. O cartão-referência recebe um selo "PRINCIPAL" e borda azul destacada. Substitui o antigo botão 🎯. Remover uma cidade é feito por um "✕" no canto do cartão (com `stopPropagation` para não disparar a seleção de referência).
+
+6. **Busca rica para adicionar cidades** — o campo de busca é apresentado de forma destacada ("＋ Adicionar cidade…"). Cada resultado mostra: nome da cidade (negrito), **região/continente em português** (derivada do prefixo IANA via `tz.getRegionLabel`, sem dataset externo), e a **hora atual** naquele fuso; o ID técnico IANA é ocultado da exibição (mantido só como `title`). Clicar no resultado adiciona aos favoritos.
+
 ## Fluxo de dados
 
 1. Ao abrir: `store` carrega favoritos, referência e settings do `localStorage`.
