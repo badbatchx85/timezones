@@ -1,0 +1,9 @@
+# Stack para o Portainer (método "Git repository": Portainer faz o build deste repo).
+services:
+  timezones:
+    build: .
+    image: timezones:latest
+    container_name: relogios-mundiais
+    ports:
+      - "8080:80"   # http://SEU_SERVIDOR:8080  (ajuste o lado esquerdo se a 8080 estiver ocupada)
+    restart: unless-stopped
