@@ -1,0 +1,66 @@
+name: build-and-deploy
+
+# Builds the static-site image and pushes it to GHCR, then triggers a redeploy
+# of the a2lf Swarm stack via a Portainer service webhook.
+#
+# Bootstrap: the FIRST run only builds+pushes (no PORTAINER_WEBHOOK secret yet, so
+# the redeploy step no-ops). After the Swarm stack exists and its service webhook
+# is stored as the repo secret PORTAINER_WEBHOOK, every push to main auto-deploys.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/badbatchx85/timezones
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata (tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=main-
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trigger Portainer redeploy (immutable SHA tag)
+        env:
+          HOOK: ${{ secrets.PORTAINER_WEBHOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "No PORTAINER_WEBHOOK secret set yet — skipping redeploy (bootstrap run)."
+            exit 0
+          fi
+          SHA_TAG="main-${GITHUB_SHA::7}"
+          echo "Triggering redeploy with tag: ${SHA_TAG}"
+          curl -fsS -X POST "${HOOK}?tag=${SHA_TAG}"
+          echo "Redeploy triggered."

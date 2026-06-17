@@ -1,9 +1,38 @@
-# Stack para o Portainer (método "Git repository": Portainer faz o build deste repo).
+# Docker Swarm stack for the a2lf cluster (Portainer + Traefik ingress).
+#
+# IMPORTANT: `docker stack deploy` IGNORES `build:`. The image is built and pushed
+# to GHCR by CI (.github/workflows/deploy.yml). This stack only references that image.
+# Routing/TLS are handled by Traefik via deploy.labels on the external `public` network;
+# the cert for timezones.nuvark.com.br is issued by the `letsencrypt` resolver (Cloudflare DNS-01).
+version: "3.8"
+
 services:
   timezones:
-    build: .
-    image: timezones:latest
-    container_name: relogios-mundiais
-    ports:
-      - "8080:80"   # http://SEU_SERVIDOR:8080  (ajuste o lado esquerdo se a 8080 estiver ocupada)
-    restart: unless-stopped
+    image: ghcr.io/badbatchx85/timezones:latest
+    networks:
+      - public
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first        # nginx is stateless → zero-downtime redeploys
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=public"
+        # HTTPS router
+        - "traefik.http.routers.timezones.entrypoints=websecure"
+        - "traefik.http.routers.timezones.rule=Host(`timezones.nuvark.com.br`)"
+        - "traefik.http.routers.timezones.tls=true"
+        - "traefik.http.routers.timezones.tls.certresolver=letsencrypt"
+        - "traefik.http.services.timezones.loadbalancer.server.port=80"
+        # HTTP → HTTPS redirect
+        - "traefik.http.routers.timezones-web.entrypoints=web"
+        - "traefik.http.routers.timezones-web.rule=Host(`timezones.nuvark.com.br`)"
+        - "traefik.http.routers.timezones-web.middlewares=timezones-redirect"
+        - "traefik.http.middlewares.timezones-redirect.redirectscheme.scheme=https"
+
+networks:
+  public:
+    external: true
