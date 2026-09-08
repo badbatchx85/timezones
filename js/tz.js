@@ -112,3 +112,19 @@ export function dateForReferenceMinute(referenceTz, base, minuteOfDay) {
   const utcMs = Date.parse(`${y}T00:00:00Z`) + (minuteOfDay - off) * 60000;
   return new Date(utcMs);
 }
+
+// Diferença do fuso em relação à referência, em minutos, para um instante.
+// Derivada do offset real de cada fuso na data, então acompanha horário de verão.
+export function zoneDiffMinutes(timeZone, referenceTz, date) {
+  return offsetMinutes(timeZone, date) - offsetMinutes(referenceTz, date);
+}
+
+// 720 -> "+12h" | -240 -> "−4h" | 510 -> "+8h30" | 0 -> "0h"
+export function formatDiffLabel(minutes) {
+  if (minutes === 0) return "0h";
+  const sign = minutes < 0 ? "−" : "+"; // sinal de menos tipográfico, não hífen
+  const abs = Math.abs(minutes);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  return m ? `${sign}${h}h${String(m).padStart(2, "0")}` : `${sign}${h}h`;
+}

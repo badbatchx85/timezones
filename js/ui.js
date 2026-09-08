@@ -1,4 +1,4 @@
-import { formatTime, formatDateShort, getOffsetLabel, getCityLabel, dayPart, isValidZone, getRegionLabel } from "./tz.js";
+import { formatTime, formatDateShort, getOffsetLabel, getCityLabel, dayPart, isValidZone, getRegionLabel, zoneDiffMinutes, formatDiffLabel } from "./tz.js";
 
 const REDUCED_MOTION = typeof window !== "undefined" && window.matchMedia
   ? window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -17,6 +17,19 @@ function partRowClass(part) {
   if (part === "comercial") return "comercial";
   if (part === "madrugada") return "night";
   return "neutral";
+}
+
+// Forma longa da diferença, usada no title (e lida por leitores de tela).
+function diffTitle(minutes, referenceTz) {
+  const refName = getCityLabel(referenceTz);
+  if (minutes === 0) return `Mesma hora que ${refName}`;
+  const abs = Math.abs(minutes);
+  const h = Math.floor(abs / 60);
+  const m = abs % 60;
+  const parts = [];
+  if (h) parts.push(`${h} ${h === 1 ? "hora" : "horas"}`);
+  if (m) parts.push(`${m} min`);
+  return `${parts.join(" e ")} ${minutes > 0 ? "à frente de" : "atrás de"} ${refName}`;
 }
 
 // Builds the per-character flap cells for an HH:MM (or HH:MM AM) string.
@@ -87,11 +100,20 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     name.textContent = getCityLabel(tz);
     name.title = tz; // IANA técnico só no title
     left.append(glyph, name);
+    let diff = null;
     if (isRef) {
       const tag = document.createElement("span");
       tag.className = "tag-ref";
       tag.innerHTML = `<span class="dot">●</span> Referência`;
       left.append(tag);
+    } else {
+      // Cidades comuns mostram a diferença contra a referência no lugar da tag.
+      const minutes = zoneDiffMinutes(tz, referenceTz, displayDate);
+      diff = document.createElement("span");
+      diff.className = "diff";
+      diff.textContent = formatDiffLabel(minutes);
+      diff.title = diffTitle(minutes, referenceTz);
+      left.append(diff);
     }
 
     // center: split-flap time
@@ -142,6 +164,7 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
     row._lastTime = flaps.map(f => f.textContent).join("");
     row._glyph = glyph;
     row._offset = offset;
+    row._diff = diff;
   });
 
   firstPaint = false; // cascata só na 1ª pintura
@@ -150,7 +173,7 @@ export function renderBoard({ grid, emptyEl, cities, displayDate, referenceTz, c
 
 // updateTimes — called each tick / comparator change. Flips only changed chars,
 // and refreshes glyph/offset/date/row-state when the displayed instant changes.
-export function updateTimes({ grid, displayDate, colorHint, hour12 }) {
+export function updateTimes({ grid, displayDate, referenceTz, colorHint, hour12 }) {
   grid.querySelectorAll(".row").forEach(row => {
     const tz = row.dataset.tz;
     if (!tz || !row._flaps) return;
@@ -178,6 +201,16 @@ export function updateTimes({ grid, displayDate, colorHint, hour12 }) {
     if (row._glyph && row._glyph.textContent !== desiredGlyph) row._glyph.textContent = desiredGlyph;
     row.classList.remove("neutral", "comercial", "night");
     row.classList.add(partRowClass(part));
+
+    // diferença contra a referência: muda ao cruzar transições de horário de verao
+    if (row._diff) {
+      const minutes = zoneDiffMinutes(tz, referenceTz, displayDate);
+      const label = formatDiffLabel(minutes);
+      if (row._diff.textContent !== label) {
+        row._diff.textContent = label;
+        row._diff.title = diffTitle(minutes, referenceTz);
+      }
+    }
 
     // offset + date
     if (row._offset) {

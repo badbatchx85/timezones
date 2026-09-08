@@ -103,3 +103,38 @@ it("getLocalZone devolve uma string de fuso não-vazia", () => {
   assertEqual(typeof z, "string");
   assert(z.length > 0, "fuso local não-vazio");
 });
+
+// --- diferença de horas em relação à cidade de referência ---
+import { zoneDiffMinutes, formatDiffLabel } from "./tz.js";
+
+// 2026-01-15: Londres em GMT (sem horário de verão); 2026-06-15: Londres em BST (GMT+1).
+const refInverno = new Date("2026-01-15T18:00:00Z");
+
+it("zoneDiffMinutes devolve a diferença em minutos contra a referência", () => {
+  assertEqual(zoneDiffMinutes("Asia/Tokyo", "America/Sao_Paulo", ref), 720);   // +12h
+  assertEqual(zoneDiffMinutes("America/Sao_Paulo", "Asia/Tokyo", ref), -720);  // −12h
+  assertEqual(zoneDiffMinutes("America/Sao_Paulo", "America/Sao_Paulo", ref), 0);
+});
+
+it("zoneDiffMinutes acompanha o horário de verão da referência e do destino", () => {
+  // Londres: BST (GMT+1) em junho, GMT em janeiro — a diferença muda com a data.
+  assertEqual(zoneDiffMinutes("Europe/London", "America/Sao_Paulo", ref), 240);        // +4h
+  assertEqual(zoneDiffMinutes("Europe/London", "America/Sao_Paulo", refInverno), 180); // +3h
+});
+
+it("zoneDiffMinutes lida com fusos de meia hora nos dois sentidos", () => {
+  assertEqual(zoneDiffMinutes("Asia/Kolkata", "America/Sao_Paulo", ref), 510);       // +8h30
+  assertEqual(zoneDiffMinutes("Pacific/Marquesas", "America/Sao_Paulo", ref), -390); // −6h30
+});
+
+it("formatDiffLabel formata a diferença com sinal", () => {
+  assertEqual(formatDiffLabel(720), "+12h");
+  assertEqual(formatDiffLabel(-240), "−4h");
+  assertEqual(formatDiffLabel(0), "0h");
+});
+
+it("formatDiffLabel mantém o sinal nas horas em fusos de meia hora", () => {
+  assertEqual(formatDiffLabel(510), "+8h30");
+  assertEqual(formatDiffLabel(-390), "−6h30");
+  assertEqual(formatDiffLabel(-45), "−0h45");
+});

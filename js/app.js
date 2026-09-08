@@ -121,6 +121,7 @@ function tick() {
   updateTimes({
     grid,
     displayDate: date,
+    referenceTz: store.getReference(),
     colorHint: store.getSettings().colorHint,
     hour12: store.getSettings().hour12,
   });
